@@ -1,0 +1,73 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Botond=20Lov=C3=A1sz?= <botilovasz@gmail.com>
+Date: Mon, 30 Dec 2024 04:21:48 +0100
+Subject: [PATCH] AMD RDTSC fix
+
+---
+ arch/x86/kvm/svm/svm.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/arch/x86/kvm/svm/svm.c b/arch/x86/kvm/svm/svm.c
+index 2ac30170f887caa2c191db46678cb3ad678b9568..79d84b960429e3f1ffc7d77c998e4afd0a0aaa4e 100644
+--- a/arch/x86/kvm/svm/svm.c
++++ b/arch/x86/kvm/svm/svm.c
+@@ -1289,6 +1289,7 @@ static void init_vmcb(struct kvm_vcpu *vcpu)
+ 	svm_set_intercept(svm, INTERCEPT_XSETBV);
+ 	svm_set_intercept(svm, INTERCEPT_RDPRU);
+ 	svm_set_intercept(svm, INTERCEPT_RSM);
++	svm_set_intercept(svm, INTERCEPT_RDTSC);
+ 
+ 	if (!kvm_mwait_in_guest(vcpu->kvm)) {
+ 		svm_set_intercept(svm, INTERCEPT_MONITOR);
+@@ -3253,6 +3254,43 @@ static int invpcid_interception(struct kvm_vcpu *vcpu)
+ 	return kvm_handle_invpcid(vcpu, type, gva);
+ }
+ 
++static u32 print_once = 1;
++static u64 rdtsc_divider = 4500 / 200; // Change 4500 to base CPU frequency in MHz (proc_freq / rdtsc_divider = 0.2 GHz)?
++
++static int handle_rdtsc_interception(struct kvm_vcpu *vcpu)
++{
++    	static u64 rdtsc_fake = 0;
++	static u64 rdtsc_prev = 0;
++	u64 rdtsc_real = rdtsc();
++
++	if(print_once)
++	{
++		printk("[handle_rdtsc] fake rdtsc svm function is working\n");
++		print_once = 0;
++		rdtsc_fake = rdtsc_real;
++	}
++
++	if(rdtsc_prev != 0)
++	{
++		if(rdtsc_real > rdtsc_prev)
++		{
++			u64 diff = rdtsc_real - rdtsc_prev;
++			u64 fake_diff =  diff / rdtsc_divider;
++			rdtsc_fake += fake_diff;
++		}
++	}
++	if(rdtsc_fake > rdtsc_real)
++	{
++		rdtsc_fake = rdtsc_real;
++	}
++	rdtsc_prev = rdtsc_real;
++
++	vcpu->arch.regs[VCPU_REGS_RAX] = rdtsc_fake & -1u;
++    vcpu->arch.regs[VCPU_REGS_RDX] = (rdtsc_fake >> 32) & -1u;
++
++    return svm_skip_emulated_instruction(vcpu);
++}
++
+ static int (*const svm_exit_handlers[])(struct kvm_vcpu *vcpu) = {
+ 	[SVM_EXIT_READ_CR0]			= cr_interception,
+ 	[SVM_EXIT_READ_CR3]			= cr_interception,
+@@ -3325,6 +3363,7 @@ static int (*const svm_exit_handlers[])(struct kvm_vcpu *vcpu) = {
+ 	[SVM_EXIT_AVIC_INCOMPLETE_IPI]		= avic_incomplete_ipi_interception,
+ 	[SVM_EXIT_AVIC_UNACCELERATED_ACCESS]	= avic_unaccelerated_access_interception,
+ 	[SVM_EXIT_VMGEXIT]			= sev_handle_vmgexit,
++	[SVM_EXIT_RDTSC]			= handle_rdtsc_interception,
+ };
+ 
+ static void dump_vmcb(struct kvm_vcpu *vcpu)

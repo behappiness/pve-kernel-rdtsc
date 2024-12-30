@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Botond=20Lov=C3=A1sz?= <botilovasz@gmail.com>
+Date: Mon, 30 Dec 2024 04:08:49 +0100
+Subject: [PATCH] remove trailing whitespaces
+
+---
+ arch/x86/kvm/vmx/vmx.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/kvm/vmx/vmx.c b/arch/x86/kvm/vmx/vmx.c
+index ca6456d78ece58e8b9c28a3ba0385c6ade670f6b..b0ee1df551a99e7b3ba5949b39e7187d155f4084 100644
+--- a/arch/x86/kvm/vmx/vmx.c
++++ b/arch/x86/kvm/vmx/vmx.c
+@@ -6090,8 +6090,8 @@ static int handle_notify(struct kvm_vcpu *vcpu)
+ static u32 print_once = 1;
+ static u64 rdtsc_divider = 4500 / 200; // Change 4500 to base CPU frequency in MHz (proc_freq / rdtsc_divider = 0.2 GHz)?
+ 
+-static int handle_rdtsc(struct kvm_vcpu *vcpu) 
+-{ 
++static int handle_rdtsc(struct kvm_vcpu *vcpu)
++{
+ 	static u64 rdtsc_fake = 0;
+ 	static u64 rdtsc_prev = 0;
+ 	u64 rdtsc_real = rdtsc();
+@@ -6118,7 +6118,7 @@ static int handle_rdtsc(struct kvm_vcpu *vcpu)
+ 	}
+ 	rdtsc_prev = rdtsc_real;
+     vcpu->arch.regs[VCPU_REGS_RAX] = rdtsc_fake & -1u;
+-    vcpu->arch.regs[VCPU_REGS_RDX] = (rdtsc_fake >> 32) & -1u;  
++    vcpu->arch.regs[VCPU_REGS_RDX] = (rdtsc_fake >> 32) & -1u;
+ 
+     return skip_emulated_instruction(vcpu);
+ }

@@ -13,8 +13,8 @@ KERNEL_VER=$(KERNEL_MAJMIN).$(KERNEL_PATCHLEVEL)
 
 EXTRAVERSION=-$(KREL)-pve
 KVNAME=$(KERNEL_VER)$(EXTRAVERSION)
-PACKAGE=proxmox-kernel-$(KVNAME)
-HDRPACKAGE=proxmox-headers-$(KVNAME)
+PACKAGE=proxmox-kernel-$(KVNAME)-rdtsc
+HDRPACKAGE=proxmox-headers-$(KVNAME)-rdtsc
 
 ARCH=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
 

@@ -11,10 +11,10 @@ KREL=6
 KERNEL_MAJMIN=$(KERNEL_MAJ).$(KERNEL_MIN)
 KERNEL_VER=$(KERNEL_MAJMIN).$(KERNEL_PATCHLEVEL)
 
-EXTRAVERSION=-$(KREL)-pve
+EXTRAVERSION=-$(KREL)-pve-rdtsc
 KVNAME=$(KERNEL_VER)$(EXTRAVERSION)
-PACKAGE=proxmox-kernel-$(KVNAME)-rdtsc
-HDRPACKAGE=proxmox-headers-$(KVNAME)-rdtsc
+PACKAGE=proxmox-kernel-$(KVNAME)
+HDRPACKAGE=proxmox-headers-$(KVNAME)
 
 ARCH=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
 

@@ -9,19 +9,19 @@ REPO_NAME="pve-kernel-rdtsc"
 
 # Check for root privileges
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root"
+    echo "[INSTALL_ERROR] Please run as root"
     exit 1
 fi
 
-echo "Updating package lists..."
+echo "[INSTALL_INFO] Updating package lists..."
 apt update -y
 
-echo "Installing necessary packages..."
+echo "[INSTALL_INFO] Installing necessary packages..."
 apt install -y git devscripts dh-python python3-sphinx
 
 # Check if we are already inside the repository directory
 if [ ! -d ".git" ]; then
-    echo "Cloning the repository..."
+    echo "[INSTALL_INFO] Cloning the repository..."
     if [ ! -d "$REPO_NAME" ]; then
         git clone https://github.com/behappiness/$REPO_NAME.git
     fi
@@ -30,55 +30,55 @@ if [ ! -d ".git" ]; then
     fi
     cd $REPO_NAME
 else
-    echo "Already inside the repository directory."
+    echo "[INSTALL_INFO] Already inside the repository directory."
     git pull
 fi
 
-echo "Checking out the specific branch..."
+echo "[INSTALL_INFO] Checking out the specific branch..."
 git checkout "$BRANCH_NAME"
 
-echo "Initializing and updating submodules..."
+echo "[INSTALL_INFO] Initializing and updating submodules..."
 git submodule update --init --recursive
 
-echo "Creating a fresh build directory..."
+echo "[INSTALL_INFO] Creating a fresh build directory..."
 make build-dir-fresh
 
 BUILD_DIR=$(find . -type d -name "proxmox-kernel-*" -print -quit)
 if [ -z "$BUILD_DIR" ]; then
-    echo "Build directory not found!"
+    echo "[INSTALL_ERROR] Build directory not found!"
     exit 1
 fi
-echo "Found build directory: $BUILD_DIR"
+echo "[INSTALL_INFO] Found build directory: $BUILD_DIR"
 
-echo "Installing build dependencies..."
+echo "[INSTALL_INFO] Installing build dependencies..."
 mk-build-deps -ir "$BUILD_DIR/debian/control" || true
 
-echo "Building the kernel package..."
+echo "[INSTALL_INFO] Building the kernel package..."
 make deb
 
-echo "Installing the built kernel package..."
-dpkg -i *.deb
+echo "[INSTALL_INFO] Installing the built kernel package..."
+dpkg -i ${KERNEL_PACKAGE_NAME}*-essential_*.deb
 
-echo "Fixing dependencies..."
+echo "[INSTALL_INFO] Fixing dependencies..."
 apt install -f -y
 
 # Pin the kernel using proxmox-boot-tool
 KERNEL_VERSION=$(proxmox-boot-tool kernel list | grep 'pve-rdtsc$' | head -n 1)
 if [ -z "$KERNEL_VERSION" ]; then
-    echo "Failed to find the kernel version to pin"
+    echo "[INSTALL_ERROR] Failed to find the kernel version to pin"
     exit 1
 fi
-echo "Pinning the kernel version: $KERNEL_VERSION"
+echo "[INSTALL_INFO] Pinning the kernel version: $KERNEL_VERSION"
 proxmox-boot-tool kernel pin "$KERNEL_VERSION"
 # Interactive, have to apply ESPs config
 
-echo "Freezing the kernel package to prevent updates..."
+echo "[INSTALL_INFO] Freezing the kernel package to prevent updates..."
 apt-mark hold "$KERNEL_PACKAGE_NAME"
 
-echo "Reboot the system for changes to take effect..."
+echo "[INSTALL_INFO] Reboot the system for changes to take effect..."
 read -p "Do you want to reboot the system now? (y/n): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     reboot
 else
-    echo "Reboot canceled."
+    echo "[INSTALL_INFO] Reboot canceled."
 fi

@@ -13,6 +13,8 @@ wget -L https://raw.github.com/behappiness/pve-kernel-rdtsc/bookworm-6.8/install
 bash install.sh
 ```
 
+To update the package, run the script again.
+
 KERNEL SOURCE:
 ==============
 

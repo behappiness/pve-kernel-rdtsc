@@ -19,12 +19,20 @@ apt update -y
 echo "Installing necessary packages..."
 apt install -y git devscripts dh-python python3-sphinx
 
-echo "Cloning or updating the kernel repository..."
-if [ ! -d "$REPO_NAME" ]; then
-    git clone https://github.com/behappiness/$REPO_NAME
+# Check if we are already inside the repository directory
+if [ ! -d ".git" ]; then
+    echo "Cloning the repository..."
+    if [ ! -d "$REPO_NAME" ]; then
+        git clone https://github.com/behappiness/$REPO_NAME.git
+    fi
+    if [ -f install.sh ]; then
+        rm install.sh
+    fi
+    cd $REPO_NAME
+else
+    echo "Already inside the repository directory."
+    git pull
 fi
-cd $REPO_NAME
-git pull
 
 echo "Checking out the specific branch..."
 git checkout "$BRANCH_NAME"
@@ -67,5 +75,10 @@ proxmox-boot-tool kernel pin "$KERNEL_VERSION"
 echo "Freezing the kernel package to prevent updates..."
 apt-mark hold "$KERNEL_PACKAGE_NAME"
 
-echo "Rebooting the system..."
-reboot
+echo "Reboot the system for changes to take effect..."
+read -p "Do you want to reboot the system now? (y/n): " confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    reboot
+else
+    echo "Reboot canceled."
+fi

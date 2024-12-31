@@ -5,6 +5,7 @@ set -e  # Exit immediately if a command exits with a non-zero status
 # Define the branch name and kernel package name as variables
 BRANCH_NAME="bookworm-6.8"
 KERNEL_PACKAGE_NAME="proxmox-kernel-6.8"
+REPO_NAME="pve-kernel-rdtsc"
 
 # Check for root privileges
 if [ "$EUID" -ne 0 ]; then
@@ -19,10 +20,10 @@ echo "Installing necessary packages..."
 apt install -y git devscripts dh-python python3-sphinx
 
 echo "Cloning or updating the kernel repository..."
-if [ ! -d "pve-kernel-rdtsc" ]; then
-    git clone https://github.com/behappiness/pve-kernel-rdtsc
+if [ ! -d "$REPO_NAME" ]; then
+    git clone https://github.com/behappiness/$REPO_NAME
 fi
-cd pve-kernel-rdtsc
+cd $REPO_NAME
 git pull
 
 echo "Checking out the specific branch..."

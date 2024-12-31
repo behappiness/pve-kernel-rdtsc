@@ -1,7 +1,7 @@
 PACKAGE CHANGES AND INSTALLATION
 ================================
 
-This package has been modified to fake RDTSC for anti-cheating.
+This package has been modified to fake RDTSC against anti-cheat detection.
 The package is built and installed on the following Proxmox VE version: [proxmox-ve_8.2-2.iso](https://enterprise.proxmox.com/iso/proxmox-ve_8.2-2.iso)
 
 To install this package, you can use the provided `install.sh` script. This script automates the installation process, but user interaction is required to apply the kernel configuration.
